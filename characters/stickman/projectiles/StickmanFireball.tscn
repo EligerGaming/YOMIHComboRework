@@ -56,6 +56,7 @@ max_air_speed = "20"
 extra_state_variables = "can_stack"
 fizzle_on_ceiling = true
 apply_hitlag_when_hit_by_melee = false
+hookable = true
 
 [node name="Sprite" parent="Flip" index="0"]
 frames = SubResource( 1 )
@@ -82,11 +83,13 @@ width = 6
 height = 6
 damage = 60
 hitstun_ticks = 11
+combo_hitstun_ticks = 4
 hitlag_ticks = 8
 victim_hitlag = 8
 plus_frames = 2
 screenshake_amount = 2
 hit_sound = ExtResource( 8 )
+momentum_knockback = true
 start_tick = 1
 always_on = true
 

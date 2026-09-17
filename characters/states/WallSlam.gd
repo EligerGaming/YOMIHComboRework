@@ -24,6 +24,7 @@ func _frame_0():
 #	host.sprite.rotation = TAU/4 * -dir
 	host.screen_bump(Vector2.RIGHT * dir, 15, 0.28)
 	var di = fixed.mul(host.get_scaled_di(host.current_di).y, DI_EFFECT)
+	di = "0" #removes DI influence on the wallslam
 	var y_pos = Utils.int_min(host.get_pos().y, MIN_HEIGHT) + fixed.round(di)
 	
 	if host.wall_slams == 0:

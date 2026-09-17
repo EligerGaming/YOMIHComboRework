@@ -55,6 +55,7 @@ max_fall_speed = "8"
 damages_own_team = true
 can_be_hit_by_melee = true
 apply_hitlag_when_hit_by_melee = false
+hookable = true
 
 [node name="Sprite" parent="Flip" index="0"]
 frames = SubResource( 1 )
@@ -89,9 +90,11 @@ width = 3
 height = 3
 damage = 50
 hitstun_ticks = 33
+combo_hitstun_ticks = 10
 victim_hitlag = 4
 allowed_to_hit_own_team = false
 knockback = "3.0"
 launch_reversible = true
+resets_knockback = true
 start_tick = 10
 always_on = true

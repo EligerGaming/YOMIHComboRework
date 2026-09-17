@@ -45,11 +45,15 @@ export var damage: int = 0
 export var damage_in_combo: int = -1
 export var minimum_damage: int = 0
 export var chip_damage_modifier = "1.0"
+export var wallslamDamageModifier = "3.0" #upon hitbox landing modifies the amount of damage is taken when opponent walls
+export var knockdownDamageModifier = "0.0" #upon hitbox landing modifies the amount of damage is taken when opponent is knocked down (default is none)
 
 export var _c_Hit_Properties = 0
 export(HitboxType) var hitbox_type = HitboxType.Normal
 export var hitstun_ticks: int = 30
 export var combo_hitstun_ticks: int = -1
+export var resets_hitstun = false #new variable, self explanatory
+export var cancelable_hitstun = false #extends hitstun state until the attacker is ready
 export var hitlag_ticks: int = 4
 export var victim_hitlag: int = -1
 export var combo_victim_hitlag: int = -1
@@ -124,6 +128,10 @@ export var dir_x: String = "1.0"
 export var dir_y: String = "-1.0"
 export var knockback: String = "10.0"
 export var launch_reversible = false
+export var resets_knockback = false #YCR variable
+export var redirect_knockback = false #redirects characters current momentum towards the direction of the knockback of the attack, 
+									  #direction values with a magnitude different than 1 will multiply momentum by said magnitude
+export var momentum_knockback = false #attackers momentum is added to the attacks knockback
 export var vacuum = false
 export var send_away_from_center = false
 export var block_pushback_modifier: String = "1.0"

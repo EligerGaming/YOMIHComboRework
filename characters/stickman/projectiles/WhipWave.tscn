@@ -67,6 +67,7 @@ __meta__ = {
 }
 extra_state_variables = "whip_parriable"
 has_projectile_parry_window = false
+hookable = true
 
 [node name="Sprite" parent="Flip" index="0"]
 frames = SubResource( 1 )
@@ -100,6 +101,7 @@ width = 23
 height = 4
 damage = 60
 hitstun_ticks = 14
+resets_hitstun = true
 hitlag_ticks = 5
 hits_otg = true
 di_modifier = "1.5"
@@ -108,6 +110,7 @@ hit_height = 2
 dir_x = "0.40"
 dir_y = "-0.40"
 knockback = "3.0"
+resets_knockback = true
 grounded_hit_state = "HurtAerial"
 minimum_grounded_frames = 4
 knockdown = true

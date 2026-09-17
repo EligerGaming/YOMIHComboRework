@@ -2,7 +2,7 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "1.10.0-steam"
+var VERSION = "alphaComboRework-NinjaOnlyV1-steam"
 const RESOLUTION = Vector2(640, 360)
 
 const STYLE_SAVE_FEATURE_ENABLED = true
@@ -125,10 +125,10 @@ var rng = BetterRng.new()
 
 var name_paths = {
 	"Ninja": "res://characters/stickman/NinjaGuy.tscn",
-	"Cowboy": "res://characters/swordandgun/SwordGuy.tscn",
-	"Wizard": "res://characters/wizard/Wizard.tscn",
-	"Robot": "res://characters/robo/Robot.tscn",
-	"Mutant": "res://characters/mutant/Mutant.tscn",
+#	"Cowboy": "res://characters/swordandgun/SwordGuy.tscn",
+#	"Wizard": "res://characters/wizard/Wizard.tscn",
+#	"Robot": "res://characters/robo/Robot.tscn",
+#	"Mutant": "res://characters/mutant/Mutant.tscn",
 #	"Alien": "res://characters/alien/Alien.tscn",
 }
 

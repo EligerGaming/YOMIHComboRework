@@ -39,20 +39,6 @@ animations = [ {
 [node name="StickmanSummon" instance=ExtResource( 6 )]
 material = SubResource( 2 )
 z_index = -1
-__meta__ = {
-"limb_data": {
-"Head": {
-},
-"LeftFoot": {
-},
-"LeftHand": {
-},
-"RightFoot": {
-},
-"RightHand": {
-}
-}
-}
 gravity = "0.37"
 ground_friction = "0.6"
 has_projectile_parry_window = false
@@ -96,11 +82,13 @@ width = 21
 height = 6
 damage = 80
 hitstun_ticks = 50
+combo_hitstun_ticks = 20
 victim_hitlag = 4
 plus_frames = 1
 hit_height = 2
 dir_x = "-0.40"
 knockback = "6.0"
+redirect_knockback = true
 grounded_hit_state = "HurtAerial"
 start_tick = 1
 active_ticks = 30

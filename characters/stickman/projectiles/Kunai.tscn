@@ -56,6 +56,7 @@ has_projectile_parry_window = false
 can_be_hit_by_melee = true
 free_cancel_on_hit = true
 projectile_immune = true
+hookable = true
 
 [node name="Sprite" parent="Flip" index="0"]
 frames = SubResource( 1 )
@@ -94,11 +95,13 @@ width = 10
 height = 10
 damage = 70
 hitstun_ticks = 20
+resets_hitstun = true
 hitlag_ticks = 5
 victim_hitlag = 5
 allowed_to_hit_own_team = false
 plus_frames = 2
 hit_sound = ExtResource( 5 )
 knockback = "5.0"
+resets_knockback = true
 start_tick = 1
 always_on = true

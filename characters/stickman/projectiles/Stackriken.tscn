@@ -53,6 +53,7 @@ has_projectile_parry_window = false
 movable = false
 can_be_hit_by_melee = true
 free_cancel_on_hit = true
+hookable = true
 
 [node name="Flip" parent="." index="0"]
 scale = Vector2( 1, 0.75 )
@@ -117,13 +118,16 @@ height = 16
 damage = 60
 minimum_damage = 15
 hitstun_ticks = 15
+combo_hitstun_ticks = 1
 hitlag_ticks = 5
+victim_hitlag = 1
 sdi_modifier = "0.3"
 allowed_to_hit_own_team = false
 plus_frames = 1
 screenshake_amount = 8
 whiff_sound = ExtResource( 9 )
 hit_sound = ExtResource( 8 )
+resets_knockback = true
 grounded_hit_state = "HurtAerial"
 start_tick = 1
 always_on = true

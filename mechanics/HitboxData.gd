@@ -1,11 +1,17 @@
 class_name HitboxData
-
+#this script acts as an inbetween of hitbox and the character being hit that gets the reference to this hitbox,
+#which basically means any new hitbox values need to be reflected here for the opponent to be able to recieve the information
 var id: int
 var hit_height: int
 var hitstun_ticks: int
+var resets_hitstun = false #ycr
+var cancelable_hitstun = false #ycr
 var facing: String
 var facing_int: int
 var knockback: String
+var resets_knockback = false #ycr
+var redirect_knockback = false #ycr
+var momentem_knockback = false #ycr
 var dir_y: String
 var dir_x: String
 var pos_x: int
@@ -21,6 +27,8 @@ var ground_bounce
 var air_ground_bounce
 var hits_otg
 var damage
+var wallslamDamageModifier = "1.0" #ycr
+var knockdownDamageModifier = "0.0" #ycr
 var parriable = true
 var reversible
 var name
@@ -85,6 +93,10 @@ func _init(state):
 		victim_hitlag = state.victim_hitlag
 	else:
 		victim_hitlag = state.get_real_victim_hitlag()
+	if state.get("cancelable_hitstun") != null: #ycr
+		cancelable_hitstun = state.cancelable_hitstun
+	if state.get("resets_hitstun") != null: #ycr
+		resets_hitstun = state.resets_hitstun
 	facing = state.host.get_facing()
 	facing_int = state.host.get_facing_int()
 	id = state.host.id
@@ -92,7 +104,17 @@ func _init(state):
 		knockback = state.knockback
 	else:
 		knockback = state.get_real_knockback()
+	if (state.get("resets_knockback") != null): #ycr
+		resets_knockback = state.get("resets_knockback")
+	if (state.get("redirect_knockback") != null): #ycr
+		redirect_knockback = state.get("redirect_knockback")
+	if (state.get("momentem_knockback") != null): #ycr
+		momentem_knockback = state.get("momentem_knockback")
 	damage = state.damage
+	if state.get("wallslamDamageModifier") != null: #ycr
+		wallslamDamageModifier = state.wallslamDamageModifier
+	if state.get("knockdownDamageModifier") != null: #ycr
+		knockdownDamageModifier = state.knockdownDamageModifier
 	dir_y = state.dir_y
 	hitlag_ticks = state.hitlag_ticks
 	disable_collision = state.disable_collision
@@ -100,7 +122,7 @@ func _init(state):
 	knockdown = state.knockdown
 	aerial_hit_state = state.aerial_hit_state
 	grounded_hit_state = state.grounded_hit_state
-	damage = state.damage
+	damage = state.damage #Why is there two??? (ycr dev)
 	name = state.name
 	ground_bounce = state.ground_bounce
 	throw = state.throw

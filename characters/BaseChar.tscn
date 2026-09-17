@@ -919,6 +919,7 @@ width = 38
 height = 38
 hitbox_type = 4
 hitstun_ticks = 23
+resets_hitstun = true
 victim_hitlag = 4
 damage_proration = 3
 cancellable = false
@@ -933,6 +934,7 @@ hit_sound = ExtResource( 126 )
 dir_y = "-0.25"
 knockback = "14.0"
 launch_reversible = true
+resets_knockback = true
 start_tick = 2
 active_ticks = 1
 
@@ -972,6 +974,7 @@ width = 38
 height = 38
 hitbox_type = 4
 hitstun_ticks = 23
+resets_hitstun = true
 victim_hitlag = 4
 damage_proration = 3
 cancellable = false
@@ -986,6 +989,7 @@ hit_sound = ExtResource( 126 )
 dir_y = "-0.25"
 knockback = "14.0"
 launch_reversible = true
+resets_knockback = true
 start_tick = 2
 active_ticks = 1
 
@@ -998,6 +1002,7 @@ particle_scene = ExtResource( 120 )
 particle_position = Vector2( 0, -16 )
 spawn_particle_on_enter = true
 title = "Burst Cancel"
+show_in_menu = false
 type = 3
 button_texture = ExtResource( 96 )
 air_type = 2
@@ -1024,7 +1029,8 @@ y = -19
 width = 38
 height = 38
 hitbox_type = 3
-hitstun_ticks = 24
+hitstun_ticks = 15
+resets_hitstun = true
 victim_hitlag = 4
 increment_combo = false
 hits_otg = true
@@ -1037,6 +1043,7 @@ hit_sound = ExtResource( 127 )
 dir_y = "-0.25"
 knockback = "4.0"
 launch_reversible = true
+resets_knockback = true
 start_tick = 1
 active_ticks = 1
 
@@ -1548,7 +1555,6 @@ super_effect = false
 
 [node name="HurtDizzy" type="Node2D" parent="StateMachine" index="39"]
 script = ExtResource( 28 )
-reset_momentum = true
 anim_length = 8
 loop_animation = true
 endless = true
@@ -1577,7 +1583,6 @@ interrupt_exceptions_string = "CounterAttack"
 
 [node name="HurtAerial" type="Node2D" parent="StateMachine" index="41"]
 script = ExtResource( 27 )
-reset_momentum = true
 anim_length = 8
 loop_animation = true
 endless = true
@@ -1589,7 +1594,6 @@ change_stance_to = "Normal"
 
 [node name="HurtGrounded" type="Node2D" parent="StateMachine" index="42"]
 script = ExtResource( 28 )
-reset_momentum = true
 anim_length = 8
 loop_animation = true
 endless = true
@@ -1601,6 +1605,7 @@ change_stance_to = "Normal"
 
 [node name="Grabbed" type="Node2D" parent="StateMachine" index="43"]
 script = ExtResource( 79 )
+reset_momentum = true
 endless = true
 busy_interrupt_type = 1
 burst_cancellable = false

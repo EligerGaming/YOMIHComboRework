@@ -20,6 +20,7 @@ enum BOUNCE {
 
 var counter = false
 
+var hitstun #hitstun moved to here
 var hitbox
 
 func _enter_tree():
@@ -35,6 +36,9 @@ func _enter_shared():
 	host.feinting = false
 	host.release_opponent()
 	hitbox = data["hitbox"]
+	hitstun = data["hitstun"] #receiving hitstun from previous state
+	if hitbox.resets_hitstun: #reseting hitstun if hitbox resets hitstun
+		hitstun = 0
 	host.z_index = -1
 	if hitbox.disable_collision:
 		host.colliding_with_opponent = false

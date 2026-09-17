@@ -1446,7 +1446,8 @@ func _create_speed_after_image(color: Color = Color.white, lifetime=0.2):
 func incr_combo(scale=true, projectile=false, force=false, combo_scale_amount=1):
 	if (scale and (!melee_attack_combo_scaling_applied or projectile)) or force:
 		combo_count += combo_scale_amount
-		hitstun_decay_combo_count += 1
+		#hitstun_decay_combo_count += 1
+		hitstun_decay_combo_count = 0 #prevents hitstun decay
 	visible_combo_count += 1
 	if combo_count == 2 and combo_moves_used.has("Burst"):
 		unlock_achievement("ACH_UNFAIR")
@@ -1664,7 +1665,10 @@ func launched_by(hitbox):
 		if !self_hit:
 			increment_opponent_combo(hitbox)
 
-		state_machine._change_state(state, {"hitbox": hitbox})
+		if state_machine.state.get("hitstun") == null: #additional code passes hitstun from old state to new state
+			state_machine._change_state(state, {"hitbox": hitbox, "hitstun": 0})
+		else:
+			state_machine._change_state(state, {"hitbox": hitbox, "hitstun": state_machine.state.hitstun})
 		# Clear was_my_turn so the upcoming Continue logic doesn't see a
 		# stale "we were naturally interruptable" flag from the pre-hit state.
 		# Otherwise the Continue elif (`was_my_turn ... and next_state_on_hold`)
@@ -2150,7 +2154,8 @@ func get_combo_stale(count):
 	var ratio = fixed.div(fixed.sub(str(MAX_STALES), str(Utils.int_min(count, MAX_STALES))), str(MAX_STALES))
 	var mod = fixed.mul(fixed.sub("1", MIN_STALE_MODIFIER), fixed.powu(ratio, 2))
 	mod = fixed.add(mod, MIN_STALE_MODIFIER)
-	return mod
+	#return mod
+	return "1" #overides combo stale
 
 func guts_stale_damage(damage: int):
 	var guts = get_guts()
@@ -2160,7 +2165,8 @@ func guts_stale_damage(damage: int):
 func combo_stale_damage(damage: int, combo_scaling_offset=0, self_hit=false):
 	var src = self if self_hit else opponent
 	var staling = get_combo_stale(Utils.int_max(src.combo_count - combo_scaling_offset + (src.combo_proration if src.combo_count > 1 else 0) - 1, 0))
-	return fixed.round(fixed.mul(str(damage), staling))
+	#return fixed.round(fixed.mul(str(damage), staling))
+	return damage #overides combo damage fall off
 
 # True when the hitbox was launched by this fighter (own projectile or self-melee).
 func _is_self_hit(hitbox) -> bool:
@@ -2229,7 +2235,8 @@ func get_di_scaling(brace=true, lookahead=0):
 	if brace and braced_attack:
 		total = fixed.mul(total, SUCCESSFUL_BRACE_DI_MODIFIER)
 	total = fixed.mul(total, di_modifier)
-	return total
+	#return total
+	return "1" #overides DI scaling
 
 func can_guard_break():
 	return true
@@ -2255,7 +2262,8 @@ func process_extra(extra):
 	if "DI" in extra:
 		if di_enabled:
 			var di = extra["DI"]
-			current_nudge = xy_to_dir(di.x, di.y, str(NUDGE_DISTANCE))
+			#current_nudge = xy_to_dir(di.x, di.y, str(NUDGE_DISTANCE))
+			current_nudge = xy_to_dir(0, 0, str(NUDGE_DISTANCE)) #removes DI nudge
 			current_di = di
 		else:
 			current_di = {
@@ -2620,7 +2628,8 @@ func tick():
 	if hitlag_ticks > 0:
 		if can_nudge:
 			if fixed.round(fixed.mul(fixed.vec_len(current_nudge.x, current_nudge.y), "100.0")) > 1:
-				current_nudge = fixed.vec_mul(current_nudge.x, current_nudge.y, nudge_amount)
+				#current_nudge = fixed.vec_mul(current_nudge.x, current_nudge.y, nudge_amount)
+				current_nudge = fixed.vec_mul(current_nudge.x, current_nudge.y, 1) #I completely forgot what this does, I think it does something to avoid DI influence/DI scaling influence
 				var di_scaled = get_scaled_di(current_di)
 				var di_scaling = fixed.round(get_di_scaling())
 #				for i in range(min(di_scaling, 2)):

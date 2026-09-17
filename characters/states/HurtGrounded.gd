@@ -7,7 +7,7 @@ const DI_STRENGTH = "3.5"
 
 export var dizzy = false
 
-var hitstun = 0
+#var hitstun = 0 #hitstun already declared in character hurt state script
 var can_act = false
 var wall_slam = false
 
@@ -21,7 +21,7 @@ func _enter():
 			anim_name = "HurtGroundedMid"
 		Hitbox.HitHeight.Low:
 			anim_name = "HurtGroundedLow"
-	hitstun = global_hitstun_modifier(hitbox.hitstun_ticks + hitstun_modifier(hitbox))
+	hitstun += global_hitstun_modifier(hitbox.hitstun_ticks + hitstun_modifier(hitbox)) #additive hitstun
 	wall_slam = hitbox.wall_slam and host.wall_slams < host.MAX_WALL_SLAMS
 	counter = hitbox.counter_hit
 	if counter:
@@ -39,6 +39,10 @@ func _enter():
 		x = fixed.mul(vacuum_dir.x, "-1")
 		y = fixed.mul(vacuum_dir.y, "-1")
 
+	if (hitbox.redirect_knockback): #implementing unique knockback properties
+		host.set_vel(str(Vector2(host.get_vel().x, host.get_vel().y).length()*Utils.int_sign(float(x))), "0")
+	if (hitbox.resets_knockback):
+		host.set_vel("0", "0")
 	var knockback_force = fixed.normalized_vec_times(x, y, hitbox.knockback)
 	knockback_force.y = "0"
 
@@ -47,19 +51,26 @@ func _enter():
 		di_force.x = "0"
 		di_force.y = "0"
 	else:
-		hitstun = di_shave_hitstun(hitstun, x, "0")
+	#	hitstun = di_shave_hitstun(hitstun, x, "0") #removing DI influence on hitstun
 		knockback_force = fixed.vec_mul(knockback_force.x, knockback_force.y, host.knockback_taken_modifier)
-	if host.braced_attack:
-		hitstun = brace_shave_hitstun(hitstun)
+	#if host.braced_attack:
+	#	hitstun = brace_shave_hitstun(hitstun) 
+	#temp removed braces effect on hitstun due to it being unknown how this interacts with additive hitstun system
 	if host.touching_wall and !wall_slam:
 		knockback_force.x = "0"
-	var force_x = fixed.add(knockback_force.x, di_force.x)
-	var force_y = fixed.add(knockback_force.y, di_force.y)
-	host.apply_force(force_x, force_y)
+	#var force_x = fixed.add(knockback_force.x, di_force.x)
+	#var force_y = fixed.add(knockback_force.y, di_force.y)
+	#host.apply_force(force_x, force_y)
+	if (hitbox.momentem_knockback): #removing DI influence on knockback and implementing momentem knockback
+		host.apply_force(str(float(knockback_force.x) + float(host.opponent.get_vel().x)), str(knockback_force.y))
+	else:
+		host.apply_force(str(knockback_force.x), str(knockback_force.y))
 	if dizzy:
 		host.start_throw_invulnerability()
 
 func _tick():
+	if host.hitlag_ticks == 0 && hitstun > 0: #hitstun degredation, also hitstun doesn't go down during hitlag
+		hitstun -= 1
 	host.set_pos(host.get_pos().x, 0)
 	host.apply_x_fric(GROUND_FRIC)
 	host.apply_forces_no_limit()
@@ -74,12 +85,15 @@ func _tick():
 			bounce = BOUNCE.RIGHT_WALL
 
 		if (bounce != BOUNCE.NO_BOUNCE):
+			host.take_damage(int(Vector2(host.get_vel().x, host.get_vel().y).length()*float(hitbox.wallslamDamageModifier))) #makes wallslams do damage based on velocity and the wall slam modifier of last attack
 			queue_state_change("WallSlam", bounce)
 			return
 
-	if current_tick >= hitstun:
+	if hitstun <= 0: #finishing integrating degrading hitstun and also implementing cancelable hitstun
 		if can_act:
 			return fallback_state
-		else:
+		elif hitbox.cancelable_hitstun == false:
 			enable_interrupt()
 			can_act = true
+		else:
+			interruptible_on_opponent_turn = true
