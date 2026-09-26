@@ -543,7 +543,7 @@ func setup_hitboxes():
 			all_hitbox_nodes.append(child)
 			host.hitboxes.append(child)
 			child.native = native
-			if child.guard_break:
+			if child.guard_break > 0:
 				is_guard_break = true
 	var earliest = 999999999
 	for hitbox in all_hitbox_nodes:

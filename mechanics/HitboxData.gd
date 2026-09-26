@@ -4,8 +4,9 @@ class_name HitboxData
 var id: int
 var hit_height: int
 var hitstun_ticks: int
+var combo_hitstun_ticks: int #ycr
 var resets_hitstun = false #ycr
-var cancelable_hitstun = false #ycr
+#var cancelable_hitstun = false #ycr
 var facing: String
 var facing_int: int
 var knockback: String
@@ -17,7 +18,8 @@ var dir_x: String
 var pos_x: int
 var pos_y: int
 var counter_hit = false
-var knockdown: bool
+#var knockdown: bool
+var regrounding_state = 0 #ycr
 var hitlag_ticks
 var victim_hitlag
 var disable_collision
@@ -34,7 +36,8 @@ var reversible
 var name
 var throw
 var combo_count = 0
-var knockdown_extends_hitstun = true
+#var knockdown_extends_hitstun = true
+var extended_hitstun = 0 #ycr
 var rumble
 var host
 var screenshake_frames = 0
@@ -49,7 +52,7 @@ var damage_proration = 0
 var parry_meter_gain = -1
 var force_grounded = false
 var hitbox_type = 0
-var hard_knockdown = false
+#var hard_knockdown = false
 var damage_in_combo = -1
 var wall_slam = false
 var hits_vs_dizzy = true
@@ -89,12 +92,14 @@ func _init(state):
 		hitstun_ticks = state.hitstun_ticks
 	else:
 		hitstun_ticks = state.get_real_hitstun()
+	if state.get("combo_hitstun_ticks") != null: #ycr
+		combo_hitstun_ticks = state.combo_hitstun_ticks
 	if !state.has_method("get_real_victim_hitlag"):
 		victim_hitlag = state.victim_hitlag
 	else:
 		victim_hitlag = state.get_real_victim_hitlag()
-	if state.get("cancelable_hitstun") != null: #ycr
-		cancelable_hitstun = state.cancelable_hitstun
+#	if state.get("cancelable_hitstun") != null: #ycr
+#		cancelable_hitstun = state.cancelable_hitstun
 	if state.get("resets_hitstun") != null: #ycr
 		resets_hitstun = state.resets_hitstun
 	facing = state.host.get_facing()
@@ -119,14 +124,16 @@ func _init(state):
 	hitlag_ticks = state.hitlag_ticks
 	disable_collision = state.disable_collision
 	dir_x = state.dir_x
-	knockdown = state.knockdown
+	#knockdown = state.knockdown
+	if state.get("regrounding_state") != null:
+		regrounding_state = state.regrounding_state
 	aerial_hit_state = state.aerial_hit_state
 	grounded_hit_state = state.grounded_hit_state
 	damage = state.damage #Why is there two??? (ycr dev)
 	name = state.name
 	ground_bounce = state.ground_bounce
 	throw = state.throw
-	hard_knockdown = state.hard_knockdown
+#	hard_knockdown = state.hard_knockdown
 	force_grounded = state.force_grounded
 	wall_slam = state.wall_slam
 	reversible = false if !state.get("launch_reversible") else state.launch_reversible
@@ -136,8 +143,10 @@ func _init(state):
 		pos_y = pos.y
 	if state.has_method("is_projectile"):
 		is_projectile = state.is_projectile()
-	if state.get("knockdown_extends_hitstun") != null:
-		knockdown_extends_hitstun = state.knockdown_extends_hitstun
+#	if state.get("knockdown_extends_hitstun") != null:
+#		knockdown_extends_hitstun = state.knockdown_extends_hitstun
+	if state.get("extended_hitstun") != null:
+		extended_hitstun = state.extended_hitstun
 	if state.get("hits_otg") != null:
 		hits_otg = state.hits_otg
 	if state.get("rumble") != null:

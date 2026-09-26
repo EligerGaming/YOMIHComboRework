@@ -14,59 +14,65 @@ var wall_slam = false
 func _enter():
 	can_act = false
 	hitbox = data["hitbox"]
-	match hitbox.hit_height:
-		Hitbox.HitHeight.High:
-			anim_name = "HurtGroundedHigh"
-		Hitbox.HitHeight.Mid:
-			anim_name = "HurtGroundedMid"
-		Hitbox.HitHeight.Low:
-			anim_name = "HurtGroundedLow"
-	hitstun += global_hitstun_modifier(hitbox.hitstun_ticks + hitstun_modifier(hitbox)) #additive hitstun
 	wall_slam = hitbox.wall_slam and host.wall_slams < host.MAX_WALL_SLAMS
 	counter = hitbox.counter_hit
-	if counter:
-		host.opponent.counterhit_this_turn = true
-
-	var x = get_x_dir(hitbox)
-	host.set_facing(Utils.int_sign(fixed.round(x)) * -1)
-	var y = hitbox.dir_y
-	if hitbox.vacuum:
-		var vacuum_dir = get_vacuum_dir(hitbox)
-		x = vacuum_dir.x
-		y = vacuum_dir.y
-	elif hitbox.send_away_from_center:
-		var vacuum_dir = get_vacuum_dir(hitbox)
-		x = fixed.mul(vacuum_dir.x, "-1")
-		y = fixed.mul(vacuum_dir.y, "-1")
-
-	if (hitbox.redirect_knockback): #implementing unique knockback properties
-		host.set_vel(str(Vector2(host.get_vel().x, host.get_vel().y).length()*Utils.int_sign(float(x))), "0")
-	if (hitbox.resets_knockback):
-		host.set_vel("0", "0")
-	var knockback_force = fixed.normalized_vec_times(x, y, hitbox.knockback)
-	knockback_force.y = "0"
-
-	var di_force = fixed.vec_mul(host.get_scaled_di(host.current_di).x, "0", fixed.mul(DI_STRENGTH, hitbox.di_modifier))
-	if hitbox.hitbox_type == Hitbox.HitboxType.Burst:
-		di_force.x = "0"
-		di_force.y = "0"
-	else:
-	#	hitstun = di_shave_hitstun(hitstun, x, "0") #removing DI influence on hitstun
-		knockback_force = fixed.vec_mul(knockback_force.x, knockback_force.y, host.knockback_taken_modifier)
-	#if host.braced_attack:
-	#	hitstun = brace_shave_hitstun(hitstun) 
-	#temp removed braces effect on hitstun due to it being unknown how this interacts with additive hitstun system
-	if host.touching_wall and !wall_slam:
-		knockback_force.x = "0"
-	#var force_x = fixed.add(knockback_force.x, di_force.x)
-	#var force_y = fixed.add(knockback_force.y, di_force.y)
-	#host.apply_force(force_x, force_y)
-	if (hitbox.momentem_knockback): #removing DI influence on knockback and implementing momentem knockback
-		host.apply_force(str(float(knockback_force.x) + float(host.opponent.get_vel().x)), str(knockback_force.y))
-	else:
-		host.apply_force(str(knockback_force.x), str(knockback_force.y))
 	if dizzy:
 		host.start_throw_invulnerability()
+	anim_name = "HurtGroundedMid"
+	if !(data["regrounding"]): #all code in this if statement only runs if the state transition wasn't a regrounding, this is done so that regrounding isn't treated as being hit
+		match hitbox.hit_height:
+			Hitbox.HitHeight.High:
+				anim_name = "HurtGroundedHigh"
+			Hitbox.HitHeight.Mid:
+				anim_name = "HurtGroundedMid"
+			Hitbox.HitHeight.Low:
+				anim_name = "HurtGroundedLow"
+		#additive hitstun
+		if (_previous_state_name() == "HurtGrounded" or _previous_state_name() == "HurtAerial" or _previous_state_name() == "Knockdown" or _previous_state_name() == "HardKnockdown" or _previous_state_name() == "WallSlam")  and hitbox.combo_hitstun_ticks >= 0:
+			hitstun += global_hitstun_modifier(hitbox.combo_hitstun_ticks + hitstun_modifier(hitbox))
+		else:
+			hitstun += global_hitstun_modifier(hitbox.hitstun_ticks + hitstun_modifier(hitbox))
+		if counter:
+			host.opponent.counterhit_this_turn = true
+
+		var x = get_x_dir(hitbox)
+		host.set_facing(Utils.int_sign(fixed.round(x)) * -1)
+		var y = hitbox.dir_y
+		if hitbox.vacuum:
+			var vacuum_dir = get_vacuum_dir(hitbox)
+			x = vacuum_dir.x
+			y = vacuum_dir.y
+		elif hitbox.send_away_from_center:
+			var vacuum_dir = get_vacuum_dir(hitbox)
+			x = fixed.mul(vacuum_dir.x, "-1")
+			y = fixed.mul(vacuum_dir.y, "-1")
+
+		if (hitbox.redirect_knockback): #implementing unique knockback properties
+			host.set_vel(str(Vector2(host.get_vel().x, host.get_vel().y).length()*Utils.int_sign(float(x))), "0")
+		if (hitbox.resets_knockback):
+			host.set_vel("0", "0")
+		var knockback_force = fixed.normalized_vec_times(x, y, hitbox.knockback)
+		knockback_force.y = "0"
+
+		var di_force = fixed.vec_mul(host.get_scaled_di(host.current_di).x, "0", fixed.mul(DI_STRENGTH, hitbox.di_modifier))
+		if hitbox.hitbox_type == Hitbox.HitboxType.Burst:
+			di_force.x = "0"
+			di_force.y = "0"
+		else:
+		#	hitstun = di_shave_hitstun(hitstun, x, "0") #removing DI influence on hitstun
+			knockback_force = fixed.vec_mul(knockback_force.x, knockback_force.y, host.knockback_taken_modifier)
+		#if host.braced_attack:
+		#	hitstun = brace_shave_hitstun(hitstun) 
+		#temp removed braces effect on hitstun due to it being unknown how this interacts with additive hitstun system
+		if host.touching_wall and !wall_slam:
+			knockback_force.x = "0"
+		#var force_x = fixed.add(knockback_force.x, di_force.x)
+		#var force_y = fixed.add(knockback_force.y, di_force.y)
+		#host.apply_force(force_x, force_y)
+		if (hitbox.momentem_knockback): #removing DI influence on knockback and implementing momentem knockback
+			host.apply_force(str(float(knockback_force.x) + float(host.opponent.get_vel().x)), str(knockback_force.y))
+		else:
+			host.apply_force(str(knockback_force.x), str(knockback_force.y))
 
 func _tick():
 	if host.hitlag_ticks == 0 && hitstun > 0: #hitstun degredation, also hitstun doesn't go down during hitlag
@@ -86,13 +92,13 @@ func _tick():
 
 		if (bounce != BOUNCE.NO_BOUNCE):
 			host.take_damage(int(Vector2(host.get_vel().x, host.get_vel().y).length()*float(hitbox.wallslamDamageModifier))) #makes wallslams do damage based on velocity and the wall slam modifier of last attack
-			queue_state_change("WallSlam", bounce)
-			return
+			queue_state_change("WallSlam", {"hitbox": hitbox, "hitstun": hitstun, "bounce": bounce})
+			pass
 
-	if hitstun <= 0: #finishing integrating degrading hitstun and also implementing cancelable hitstun
+	if hitstun <= 0: #finishing integrating degrading hitstun and also implementing extended hitstun
 		if can_act:
 			return fallback_state
-		elif hitbox.cancelable_hitstun == false:
+		elif hitbox.extended_hitstun < 2:
 			enable_interrupt()
 			can_act = true
 		else:

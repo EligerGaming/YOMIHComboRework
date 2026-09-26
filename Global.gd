@@ -2,7 +2,7 @@ extends Node
 
 signal nag_window()
 
-var VERSION = "alphaComboRework-NinjaOnlyV1-steam"
+var VERSION = "alphaComboRework-NinjaOnlyV2-steam-(snapshot1)"
 const RESOLUTION = Vector2(640, 360)
 
 const STYLE_SAVE_FEATURE_ENABLED = true

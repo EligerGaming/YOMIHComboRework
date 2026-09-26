@@ -40,6 +40,7 @@ const WALL_SLAM_DAMAGE = "0.75"
 const DI_SNAP_DISTANCE = "0.01"
 
 const DAMAGE_SUPER_GAIN_DIVISOR = 1
+const COMBO_DAMAGE_SUPER_GAIN_DIVISOR = 2 #ycr
 const DAMAGE_TAKEN_SUPER_GAIN_DIVISOR = 3
 const HITLAG_COLLISION_TICKS = 4
 const PROJECTILE_PERFECT_PARRY_WINDOW = 3
@@ -216,6 +217,7 @@ export(PackedScene) var player_extra_params_scene
 
 export var damage_taken_modifier = "1.0"
 export var knockback_taken_modifier = "1.0"
+export var super_gain_modifier = "1.0" #ycr
 export var di_modifier = "1.0"
 export var num_feints = 2
 
@@ -1282,18 +1284,21 @@ func meter_gain_modified(amount):
 	var pen = fixed.div(str(penalty), str(MAX_PENALTY))
 	if penalty <= 0:
 		pen = fixed.div(pen, "5.0")
-	amount = fixed.round(fixed.mul(fixed.sub("1", pen), str(amount)))
+#	amount = fixed.round(fixed.mul(fixed.sub("1", pen), str(amount))) #temp removing penalty's modifier on meter gain until its effects on combos is further studied (ycr)
 	return amount
 
 func gain_super_meter(amount,stale_amount = "1.0"):
-	
+	amount = float(float(amount)*float(super_gain_modifier))
 	if amount == null:
 		return
+	if combo_count > 0:
+		amount = int(float(amount)/COMBO_DAMAGE_SUPER_GAIN_DIVISOR)
 
 	var full_staled_amount = combo_stale_meter(amount)
 	amount = fixed.round(fixed.lerp_string(str(amount), str(full_staled_amount), stale_amount))
 	amount = meter_gain_modified(amount)
-	var super_modified_amount = fixed.round(fixed.div(str(amount), fixed.powu("2", combo_supers)))
+	#var super_modified_amount = fixed.round(fixed.div(str(amount), fixed.powu("2", combo_supers)))
+	var super_modified_amount = amount #removing super moves affect on super gain
 	amount = fixed.round(fixed.lerp_string(str(amount), str(super_modified_amount), stale_amount))
 	gain_super_meter_raw(amount)
 
@@ -1336,7 +1341,7 @@ func spawn_object(projectile: PackedScene, pos_x: int, pos_y: int, relative=true
 
 func combo_stale_meter(meter: int):
 	var staling = get_combo_stale(combo_count)
-	return fixed.round(fixed.mul(fixed.mul(str(meter), staling), METER_GAIN_MODIFIER if current_tick > 0 else "1.0"))
+	return fixed.round(fixed.mul(fixed.mul(str(meter), staling), METER_GAIN_MODIFIER if current_tick > 0 else "1.0")) #ycr
 	
 func update_data():
 	data = get_data()
@@ -1666,9 +1671,9 @@ func launched_by(hitbox):
 			increment_opponent_combo(hitbox)
 
 		if state_machine.state.get("hitstun") == null: #additional code passes hitstun from old state to new state
-			state_machine._change_state(state, {"hitbox": hitbox, "hitstun": 0})
+			state_machine._change_state(state, {"hitbox": hitbox, "hitstun": 0, "regrounding": false})
 		else:
-			state_machine._change_state(state, {"hitbox": hitbox, "hitstun": state_machine.state.hitstun})
+			state_machine._change_state(state, {"hitbox": hitbox, "hitstun": state_machine.state.hitstun, "regrounding": false})
 		# Clear was_my_turn so the upcoming Continue logic doesn't see a
 		# stale "we were naturally interruptable" flag from the pre-hit state.
 		# Otherwise the Continue elif (`was_my_turn ... and next_state_on_hold`)
@@ -1832,7 +1837,7 @@ func block_hitbox(hitbox, force_parry=false, force_block=false, ignore_guard_bre
 				var in_parry_window = (parry_timing == input_timing or input_timing >= 20 and turn_frames >= 20) or (hitbox.hitbox_type == Hitbox.HitboxType.Burst and combo_count > 0)
 				var perfect_requirement_no_height =  can_perfect_parry() and (!current_state().get_whiffed_block())  and (opponent.current_state().feinting or opponent.feinting or initiative) and hitbox.parriable
 				var perfect_requirement = perfect_requirement_no_height and current_state().matches_hitbox_height(hitbox)
-\
+
 #				if projectile:
 #					perfect_requirement = perfect_requirement and host.has_projectile_parry_window
 #				else:
@@ -1873,8 +1878,11 @@ func block_hitbox(hitbox, force_parry=false, force_block=false, ignore_guard_bre
 			blocked_last_turn = true
 
 			start_throw_invulnerability()
+			var attackGuardBreaks = false
+			if (hitbox.guard_break > 0 and current_state().push) or hitbox.guard_break == 2 or (hitbox.guard_break == 1 and current_state().parry_type == 0) or (hitbox.guard_break == 3 and hitbox.guard_break == 1):
+				attackGuardBreaks = true
 			if !projectile and !perfect_parry and  !last_turn_block and initiative:
-				if hitbox.guard_break and !ignore_guard_break and (!current_state().get_whiffed_block()) and opponent.can_guard_break():
+				if attackGuardBreaks and !ignore_guard_break and (!current_state().get_whiffed_block()) and opponent.can_guard_break():
 					hitbox.damage_proration = Utils.int_max(hitbox.guard_break_proration, hitbox.damage_proration)
 					hit_by(hitbox, true)
 					if current_state().get("guard_broken") != null:
@@ -2155,7 +2163,7 @@ func get_combo_stale(count):
 	var mod = fixed.mul(fixed.sub("1", MIN_STALE_MODIFIER), fixed.powu(ratio, 2))
 	mod = fixed.add(mod, MIN_STALE_MODIFIER)
 	#return mod
-	return "1" #overides combo stale
+	return "1.0" #overides combo stale
 
 func guts_stale_damage(damage: int):
 	var guts = get_guts()

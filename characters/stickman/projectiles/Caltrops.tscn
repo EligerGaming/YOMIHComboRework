@@ -96,5 +96,6 @@ allowed_to_hit_own_team = false
 knockback = "3.0"
 launch_reversible = true
 resets_knockback = true
+extended_hitstun = 1
 start_tick = 10
 always_on = true

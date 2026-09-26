@@ -3,6 +3,12 @@ extends CharacterState
 const X_FRIC = "0.06"
 const SPEED_LIMIT = "22"
 
+func _enter():
+	if _previous_state_name() == "BackSway":
+		for slideKickHitbox in all_hitbox_nodes:
+			slideKickHitbox.hits_otg = true
+			slideKickHitbox.guard_break = 3
+
 func _frame_0():
 	force_tick = 3
 	if host.initiative:

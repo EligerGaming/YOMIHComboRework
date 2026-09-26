@@ -21,14 +21,18 @@ var started_in_neutral = false
 
 func _enter():
 	dist = MOVE_DISTANCE
+	attack = data.Attack.id
+	var hasFollowup = false
+	if attack > 0:
+		hasFollowup = true
 	hitboxes = []
 	for child in get_children():
 		if child is Hitbox:
 			hitboxes.append(child)
 			child.x = 0
 			child.y = 0
+			child.block_cancel_allowed = !hasFollowup
 	var move_dir
-	attack = data.Attack.id
 	if data:
 		move_dir = xy_to_dir(data.Direction.x, data.Direction.y)
 #		move_dir = fixed.normalized_vec_times(move_dir.x, move_dir.y, "1.0")
@@ -82,8 +86,8 @@ func _frame_0():
 	var start_pos = host.get_pos().duplicate()
 	host.quick_slash_start_pos_x = start_pos.x
 	host.quick_slash_start_pos_y = start_pos.y
-	if get_next_attack() and started_in_neutral:
-		current_tick += 1
+#	if get_next_attack() and started_in_neutral:   #Don't know what this does, but disabling it because it seems to mess with frames
+#		current_tick += 1
 #	iasa_at = WHIFF_IASA
 #	landing_lag = WHIFF_LANDING_LAG
 #	host.hitlag_ticks += NEUTRAL_STARTUP_LAG if host.combo_count <= 0 else 0
@@ -149,11 +153,13 @@ func _frame_6():
 #		host.set_vel(fixed.mul(vel.x, "0.5"), vel.y)
 #	host.apply_force(move_dir_x, fixed.mul(move_dir_y, "1.0"))
 	else:
-		if started_in_neutral:
-#			host.update_grounded()
-#			if host.is_grounded():
-				switch_to_followup()
-				pass
+#		if started_in_neutral:
+##			host.update_grounded()
+##			if host.is_grounded():
+#				switch_to_followup()
+#				pass
+		switch_to_followup()
+		pass
 	host.end_invulnerability()
 
 #func _frame_7():
@@ -178,9 +184,9 @@ func switch_to_followup():
 		host.set_vel(fixed.mul(vel.x, "0.35"), "0")
 
 func get_next_attack():
-	if !started_in_neutral:
-		if !hit_anything:
-			return null
+#	if !started_in_neutral:  #Removing the disabling of the followup
+#		if !hit_anything:
+#			return null
 	var grounded = host.get_pos().y > -BUFFER_ATTACK_GROUND_SNAP_DISTANCE
 	match attack:
 		0: return null
@@ -210,9 +216,9 @@ func _tick():
 ##			host.reset_momentum()
 #		startup_lag -= 1
 #		current_tick = 0
-	if get_next_attack() != null:
-		if current_tick == 2:
-			current_tick = 3
+#	if get_next_attack() != null: #Removing quick slash becoming a 6 frame when using followup attack
+#		if current_tick == 2:
+#			current_tick = 3
 		
 	if current_tick > 6:
 		if host.is_grounded():

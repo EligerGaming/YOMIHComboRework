@@ -10,6 +10,9 @@ const MIN_HEIGHT = -30
 
 const DI_EFFECT = "10"
 var dir
+var bounce
+var hitstun
+var hitbox
 
 func _ready():
 	is_hurt_state = true
@@ -17,10 +20,13 @@ func _ready():
 func _enter():
 	host.clipping_wall = true
 	host.colliding_with_opponent = false
+	bounce = data["bounce"]
+	hitbox = data["hitbox"]
+	hitstun = data["hitstun"]
 #	host.start_invulnerability()
 
 func _frame_0():
-	dir = 1 if data == CharacterHurtState.BOUNCE.LEFT_WALL else -1
+	dir = 1 if bounce == CharacterHurtState.BOUNCE.LEFT_WALL else -1
 #	host.sprite.rotation = TAU/4 * -dir
 	host.screen_bump(Vector2.RIGHT * dir, 15, 0.28)
 	var di = fixed.mul(host.get_scaled_di(host.current_di).y, DI_EFFECT)
@@ -38,12 +44,15 @@ func _exit():
 	host.sprite.rotation = 0
 
 func _tick():
-	if current_tick > (MIN_DURATION - (host.wall_slams - 1) * 8) + (5 if !host.is_grounded() else 0):
-		if host.is_grounded():
-			return "Knockdown"
-		else:
-			enable_interrupt()
-			queue_state_change("Fall")
+	if host.hitlag_ticks == 0 && hitstun > 0: #hitstun degredation, also hitstun doesn't go down during hitlag
+		hitstun -= 1
+#	if current_tick > (MIN_DURATION - (host.wall_slams - 1) * 8) + (5 if !host.is_grounded() else 0):
+	if host.is_grounded():
+		queue_state_change("Knockdown", {"hitbox": hitbox, "hitstun": hitstun})
+		pass
+	if hitstun <= 0:
+		enable_interrupt()
+		queue_state_change("Fall")
 #	dir = 1 if data == CharacterHurtState.BOUNCE.LEFT_WALL else -1
 	if dir != null:
 		host.set_x(host.stage_width * -dir)
@@ -52,6 +61,6 @@ func _tick():
 	var fall_speed = fixed.add(MAX_FALL_SPEED, fixed.mul(FALL_SPEED_PER_SLAM, str(host.wall_slams - 1)))
 	host.apply_grav_custom(grav, fall_speed)
 	host.apply_forces()
-	if current_tick > 30:
-		enable_interrupt()
-		return "Fall"
+#	if current_tick > 30: #what is this for? (ycr)
+#		enable_interrupt()
+#		return "Fall"

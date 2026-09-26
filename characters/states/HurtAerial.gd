@@ -11,9 +11,10 @@ const BOUNCE_FRAMES = 4
 const DI_STRENGTH = "2.0"
 
 #var hitstun = 0 #hitstun already declared in character hurt state script
-var knockdown = false
+#var knockdown = false
+var regrounding_state = 0
 var wall_slam = false
-var hard_knockdown = false
+#var hard_knockdown = false
 var can_act
 var bounce_frames = 0
 var ground_bounced = false
@@ -36,11 +37,16 @@ func _enter():
 	ground_bounced = false
 	can_act = false
 
-	knockdown = hitbox.knockdown
-	hard_knockdown = hitbox.hard_knockdown
+	regrounding_state = hitbox.regrounding_state
+	#hard_knockdown = hitbox.hard_knockdown
 	wall_slam = hitbox.wall_slam and host.wall_slams < host.MAX_WALL_SLAMS
 #	hitstun = hitbox.hitstun_ticks + hitstun_modifier(hitbox)
-	hitstun += global_hitstun_modifier(hitbox.hitstun_ticks + hitstun_modifier(hitbox)) #additive hitstun
+	#additive hitstun
+	if (_previous_state_name() == "HurtGrounded" or _previous_state_name() == "HurtAerial" or _previous_state_name() == "Knockdown" or _previous_state_name() == "HardKnockdown" or _previous_state_name() == "WallSlam")  and hitbox.combo_hitstun_ticks >= 0:
+		hitstun += global_hitstun_modifier(hitbox.combo_hitstun_ticks + hitstun_modifier(hitbox))
+	else:
+		hitstun += global_hitstun_modifier(hitbox.hitstun_ticks + hitstun_modifier(hitbox))
+	
 #	print(hitstun)
 	counter = hitbox.counter_hit
 	if counter:
@@ -125,7 +131,7 @@ func _tick():
 	if (bounce != BOUNCE.NO_BOUNCE):
 		if wall_slam:
 			host.take_damage(int(Vector2(host.get_vel().x, host.get_vel().y).length()*float(hitbox.wallslamDamageModifier))) #makes wallslams do damage based on velocity and the wall slam modifier of last attack
-			queue_state_change("WallSlam", bounce)
+			queue_state_change("WallSlam", {"hitbox": hitbox, "hitstun": hitstun, "bounce": bounce})
 			return
 		host.hitlag_ticks = 3
 		host.play_sound("Block")
@@ -155,17 +161,30 @@ func _tick():
 				host.set_vel(vel.x, fixed.mul(vel.y, "-1"))
 			else:
 				if current_tick > hitbox.minimum_grounded_frames:
-					if knockdown or host.hp == 0:
+					if regrounding_state > 1 or host.hp == 0:
 						host.take_damage(int(Vector2(host.get_vel().x, host.get_vel().y).length()*float(hitbox.knockdownDamageModifier))) #makes knockdowns do damage based on velocity and the knockdown modifier of last attack, by default knockdowns do no damage
-						if hard_knockdown:
-							return "HardKnockdown"
+#						if hard_knockdown:
+#							return "HardKnockdown"
+#						else:
+#		#				host.start_invulnerability()
+#							return "Knockdown"
+						if regrounding_state == 3:
+							queue_state_change("HardKnockdown", {"hitbox": hitbox, "hitstun": hitstun})
+							pass
 						else:
-		#				host.start_invulnerability()
-							return "Knockdown"
+							queue_state_change("Knockdown", {"hitbox": hitbox, "hitstun": hitstun})
+							pass
 					else:
 						if host.hp > 0:
-							return "Landing"
-						return "Knockdown"
+							if regrounding_state == 0:
+								queue_state_change("HurtGrounded", {"hitbox": hitbox, "hitstun": hitstun, "regrounding": true})
+								pass
+							else:
+								queue_state_change("Landing")
+								pass
+							#return "Landing"
+						else:
+							return "Knockdown"
 				elif current_tick > 0:
 					match hitbox.hit_height:
 						Hitbox.HitHeight.High:
@@ -177,12 +196,12 @@ func _tick():
 		else:
 			anim_name = "HurtAerial"
 				
-	var extended_hitstun = hitbox.knockdown_extends_hitstun and hitbox.knockdown and !ground_bounced
+	var regrounding_extended_hitstun = (hitbox.extended_hitstun == 1 or hitbox.extended_hitstun == 3) and hitbox.regrounding_state > 0 and !ground_bounced
 	
-	if !extended_hitstun and hitstun <= 0: #finishing integrating degrading hitstun and also implementing cancelable hitstun
+	if !regrounding_extended_hitstun and hitstun <= 0: #finishing integrating degrading hitstun and also implementing cancelable hitstun and extended hitstun
 		if can_act and host.hp > 0:
 			return fallback_state
-		elif hitbox.cancelable_hitstun == false:
+		elif hitbox.extended_hitstun < 2:
 			enable_interrupt()
 			can_act = true
 		else:

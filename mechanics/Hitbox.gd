@@ -38,6 +38,27 @@ enum HitHeight {
 	Low
 }
 
+enum GuardBreak { #ycr
+	None
+	High
+	Mid
+	Low
+}
+
+enum GroundedState { #ycr
+	Grounded
+	LandCancel
+	Knockdown
+	HardKnockdown
+}
+
+enum ExtendedHitstun { #ycr
+	None
+	Ground
+	Attacker
+	Both
+}
+
 export var activated = true
 
 export var _c_Damage = 0
@@ -53,7 +74,7 @@ export(HitboxType) var hitbox_type = HitboxType.Normal
 export var hitstun_ticks: int = 30
 export var combo_hitstun_ticks: int = -1
 export var resets_hitstun = false #new variable, self explanatory
-export var cancelable_hitstun = false #extends hitstun state until the attacker is ready
+#export var cancelable_hitstun = false #(ycr, no longer in use and got replaced with extended hitstun)extends hitstun state until the attacker is ready
 export var hitlag_ticks: int = 4
 export var victim_hitlag: int = -1
 export var combo_victim_hitlag: int = -1
@@ -82,7 +103,7 @@ export var ignore_projectile_armor = false
 export var allowed_to_hit_own_team = true
 
 export var _c_Block_Properties = 0
-export var guard_break = false
+export(GuardBreak) var guard_break = GuardBreak.None
 export var guard_break_proration = 1
 export var block_punishable = false
 export var parriable = true
@@ -143,9 +164,11 @@ export var _c_Knockback_Type = 0
 export var grounded_hit_state = "HurtGrounded"
 export var aerial_hit_state = "HurtAerial"
 export var minimum_grounded_frames = -1
-export var knockdown = false
-export var knockdown_extends_hitstun = true # if true, aerial victim will stay in hitstun until hitting the ground
-export var hard_knockdown = false
+#export var knockdown = false
+export(GroundedState) var regrounding_state = GroundedState.Grounded #Replaced knockdown with enum that determines what state the opponent should change to when landing
+#export var knockdown_extends_hitstun = true # if true, aerial victim will stay in hitstun until hitting the ground
+export(ExtendedHitstun) var extended_hitstun = ExtendedHitstun.None #replaced knockdown extends hitstun with a more universal variable that can extend hitstun either until the opponent touches the ground or until the attacker is ready
+#export var hard_knockdown = false
 export var disable_collision = true
 export var air_ground_bounce = false
 export var ground_bounce = true
@@ -329,21 +352,22 @@ func get_real_knockback():
 #	return damage
 
 func get_real_hitstun():
-	var creator = host.get_fighter()
-	if creator:
-		var ticks = hitstun_ticks if creator.combo_count <= 0 else combo_hitstun_ticks
-		var started_above_0 = ticks > 0
-		if creator.combo_proration > 1:
-			ticks -= PRORATION_HITSTUN_ADJUSTMENT_AMOUNT * (creator.combo_proration - 1)
-			
-		if host.is_in_group("Fighter"):
-			if (creator.current_state().state_name in creator.combo_moves_used):
-				ticks = Utils.int_max(ticks - (COMBO_SAME_MOVE_HITSTUN_DECREASE_AMOUNT * (creator.combo_moves_used[creator.current_state().state_name] + 1)), ticks / 2)
-		if started_above_0 and ticks <= 0:
-			ticks = 1
-		return ticks
-	else:
-		return hitstun_ticks
+#	var creator = host.get_fighter()
+#	if creator:
+#		var ticks = hitstun_ticks if creator.combo_count <= 0 else combo_hitstun_ticks
+#		var started_above_0 = ticks > 0
+#		if creator.combo_proration > 1:
+#			ticks -= PRORATION_HITSTUN_ADJUSTMENT_AMOUNT * (creator.combo_proration - 1)
+#
+#		if host.is_in_group("Fighter"):
+#			if (creator.current_state().state_name in creator.combo_moves_used):
+#				ticks = Utils.int_max(ticks - (COMBO_SAME_MOVE_HITSTUN_DECREASE_AMOUNT * (creator.combo_moves_used[creator.current_state().state_name] + 1)), ticks / 2)
+#		if started_above_0 and ticks <= 0:
+#			ticks = 1
+#		return ticks
+#	else:
+#		return hitstun_ticks
+	return hitstun_ticks #removing all forms of combo scaling related hitstun modification
 
 func get_real_victim_hitlag():
 	var creator = host.get_fighter()

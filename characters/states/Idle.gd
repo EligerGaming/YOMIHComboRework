@@ -15,4 +15,5 @@ func _tick():
 		if !host.is_grounded():
 			return "Fall"
 	if host.hp <= 0:
-		return "Knockdown"
+		queue_state_change("Knockdown", {"hitbox": null, "hitstun": 0})
+		pass
